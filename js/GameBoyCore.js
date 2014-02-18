@@ -6217,7 +6217,7 @@ GameBoyCore.prototype.clockUpdate = function () {
 					this.RTCMinutes -= 60;
 					++this.RTCHours;
 					if (this.RTCHours >= 24) {
-						this.RTCHours -= 24
+						this.RTCHours -= 24;
 						++this.RTCDays;
 						if (this.RTCDays >= 512) {
 							this.RTCDays -= 512;
@@ -6234,9 +6234,33 @@ GameBoyCore.prototype.prepareFrame = function () {
 	this.swizzleFrameBuffer();
 	this.drewFrame = true;
 }
+
+//NOTE: Modified to support sending the frame over websockets
 GameBoyCore.prototype.requestDraw = function () {
 	if (this.drewFrame) {
 		this.dispatchDraw();
+		this.sendNewScreenOverWebsocket();
+	}
+}
+GameBoyCore.prototype.sendNewScreenOverWebsocket = function() {
+	if (this.websock && this.isConnected && this.websock.readyState == this.websock.OPEN) {
+		this.websock.send(this.frameBuffer);
+	}
+}
+GameBoyCore.prototype.connectToWebsocket = function(url) {
+	var obj = this;
+	this.websock = new WebSocket(url);
+	this.websock.onopen = function(e) {
+		console.debug("Websocket connected!");
+		obj.isConnected = true;
+	}
+	this.websock.onmessage = function(e) {
+		console.debug("Websocket Message: ", e);
+	}
+	this.websock.onerror = function(error) {
+		console.error("Weboscket Error: ", error);
+		obj.websock = null;
+		obj.isConnected = false;
 	}
 }
 GameBoyCore.prototype.dispatchDraw = function () {

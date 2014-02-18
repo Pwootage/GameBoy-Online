@@ -250,6 +250,14 @@ function registerGUIEvents() {
 	addEvent("click", document.getElementById("kill_cpu_clicker"), function () {
 		pause();
 	});
+	addEvent("click", document.getElementById("connect_to_websocket"), function () {
+		if (GameBoyEmulatorInitialized()) {
+			var url = prompt("URL to connect to:", "ws://localhost:8080/data");
+			if (url != null && url.length > 0) {
+				gameboy.connectToWebsocket(url);
+			}
+		}
+	});
 	addEvent("click", document.getElementById("save_state_clicker"), function () {
 		save();
 	});
